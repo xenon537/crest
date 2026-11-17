@@ -47,6 +47,10 @@ https://github.com/user-attachments/assets/f3a34516-0d47-4f0c-a10f-25e95cc2cf64
 
 ## Custom Fork Features (xenon537/crest)
 
+> [!NOTE]
+> **Personal Project / AI-Assisted:**
+> This repository is a personal project maintained by [@xenon537](https://github.com/xenon537) for personal use. All features, restorations, and adjustments in this fork were created with the assistance of an AI coding agent (Google Antigravity). I am not a developer or programmer, so this fork is maintained purely as a hobby/personal setup and shared as-is.
+
 This repository is a customized fork of **Crest v1.2.2** that restores key features and adds direct quick controls:
 
 ### 1. Focus Mode Restored (3-Click / 3-Tap Passthrough)

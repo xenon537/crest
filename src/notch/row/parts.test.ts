@@ -12,7 +12,7 @@ test("defaults and upgrade", () => {
 test("default values", () => {
   assert.deepEqual(CLOSED_DEFAULTS.order, [...PART_IDS]);
   assert.deepEqual(CLOSED_DEFAULTS.parts, { timer: true, discord: true, rings: true, title: false, readings: false, equalizer: true, clock: false, github: false, leetcode: false, calendar: false, script: false, downloads: true, weather: false });
-  assert.deepEqual(CLOSED_DEFAULTS.readings, { cpu: true, ram: true, gpu: true, net: false, power: false, battery: false, temp: false });
+  assert.deepEqual(CLOSED_DEFAULTS.readings, { cpu: true, ram: true, gpu: true, net: true, power: false, battery: false, temp: false });
   assert.equal(CLOSED_DEFAULTS.clockSeconds, false); assert.equal(CLOSED_DEFAULTS.lineProgress, true); assert.equal(CLOSED_DEFAULTS.quotaAlerts, true); assert.equal(CLOSED_DEFAULTS.downloadAlerts, true);
   assert.equal(CLOSED_DEFAULTS.clockDate, false);
 });
@@ -25,7 +25,7 @@ test("keeps valid saved values", () => {
   const n = normalizeClosed(saved);
   assert.deepEqual(n.order, [...saved.order, "github", "leetcode", "calendar", "script", "downloads", "weather"]);
   assert.equal(n.parts.timer, false); assert.equal(n.parts.title, true); assert.equal(n.parts.rings, true); assert.equal(n.parts.readings, false);
-  assert.deepEqual(n.readings, { cpu: false, ram: false, gpu: true, net: false, power: false, battery: false, temp: false });
+  assert.deepEqual(n.readings, { cpu: false, ram: false, gpu: true, net: true, power: false, battery: false, temp: false });
   assert.equal(normalizeClosed({ readings: { net: true, temp: "x" } }).readings.net, true);
   assert.equal(normalizeClosed({ readings: { net: true, temp: "x" } }).readings.temp, false);
   assert.equal(n.clockSeconds, true); assert.equal(n.lineProgress, false); assert.equal(n.quotaAlerts, false);
