@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { ArrowUpRight, ImageSquare, MicrophoneStage, MusicNoteSimple, Pause, Play, Repeat, RepeatOnce, Shuffle, SkipBack, SkipForward } from "@phosphor-icons/react";
+import { ArrowUpRight, ChatCenteredText, ImageSquare, MicrophoneStage, MusicNoteSimple, Pause, Play, Repeat, RepeatOnce, Shuffle, SkipBack, SkipForward } from "@phosphor-icons/react";
 import { artwork as artworkSwap, content, springs } from "../../design/motion";
 import { useSmoothArtwork, useTinyArtwork } from "./artwork";
 import { coverBackdrop } from "./CoverBackdrop";
@@ -35,6 +35,11 @@ type Panel = "mixer" | "sources" | "lyrics" | null;
 export function NowPlayingView() {
   const np = useNowPlaying();
   const music = settings.use().music;
+  const closedLyrics = music.titleLyrics || music.notchLyrics;
+  const toggleClosedLyrics = () => {
+    const next = !closedLyrics;
+    setMusic({ titleLyrics: next, notchLyrics: next });
+  };
   // The lyrics stay open from one visit to the next; the other panels close with the notch.
   const [panel, setPanelState] = useState<Panel>(() => (music.lyricsOpen ? "lyrics" : null));
   const setPanel = (p: Panel) => {
@@ -75,6 +80,13 @@ export function NowPlayingView() {
   return (
     <div className="flex h-full flex-col px-5 pt-1 pb-2">
       <HeaderActions>
+        <HeaderButton
+          label={closedLyrics ? t("Songtext in geschlossener Notch ausschalten") : t("Songtext in geschlossener Notch einschalten")}
+          active={closedLyrics}
+          onClick={toggleClosedLyrics}
+        >
+          <ChatCenteredText size={14} weight={closedLyrics ? "fill" : "bold"} />
+        </HeaderButton>
         <HeaderButton label={t("Cover als Hintergrund")} active={music.coverBackground} onClick={() => setMusic({ coverBackground: !music.coverBackground })}>
           <ImageSquare size={14} weight="bold" />
         </HeaderButton>
@@ -111,6 +123,17 @@ export function NowPlayingView() {
         </div>
         <Controls np={np} />
         <div className="flex min-w-0 items-center justify-end gap-1">
+          <button
+            onClick={toggleClosedLyrics}
+            aria-pressed={closedLyrics}
+            aria-label={closedLyrics ? t("Songtext in geschlossener Notch ausschalten") : t("Songtext in geschlossener Notch einschalten")}
+            title={closedLyrics ? t("Songtext in geschlossener Notch ausschalten") : t("Songtext in geschlossener Notch einschalten")}
+            className={`pressable pressable-fill flex size-7 items-center justify-center rounded-full transition-colors duration-150 ${
+              closedLyrics ? "bg-fill-2 text-label" : "text-label-3 hover:text-label-2"
+            }`}
+          >
+            <ChatCenteredText size={14} weight={closedLyrics ? "fill" : "bold"} />
+          </button>
           <button
             onClick={() => toggle("lyrics")}
             aria-pressed={shown === "lyrics"}

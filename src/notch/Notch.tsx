@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { AnimatePresence, animate, frame, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue, type Transition } from "motion/react";
-import { GearSix, PushPin } from "@phosphor-icons/react";
+import { GearSix, PushPin, Selection } from "@phosphor-icons/react";
 import { content, springs } from "../design/motion";
 import { livePosition, useNowPlaying } from "../platform/media";
 import { isMac, isNative, keyboardFocus, onNativeBlur, onNativeHover, onNativeHoverAt, onShortcut, onTrayOpen, setHitRect, setMemoryLow } from "../platform/native";
+import { FOCUS_CLICKS, focusMode, setFocusMode } from "./focus";
 import { PrivacyDots, usePrivacyDots } from "../features/privacy/PrivacyDots";
 import { privacy, usePresenting } from "../features/privacy/store";
 import { fullscreen, useGamingLive } from "../features/system/gaming";
@@ -33,9 +34,9 @@ import { sizeExtra, sizeOverride } from "./size";
 import { NotchShape } from "./NotchShape";
 import type { GlassMode } from "./glass/GlassLayer";
 import { barInk, useBarDrop, usePlainDrop } from "./glass/bar";
-import { CLOSE_SETTLE_MS, HUD_LIVE_LINGER_MS, SNAPSHOT_STALE_MS, dropLens, glassAllowed, glassShape, liveNeed, snapshotLead } from "./glass/params";
+import { CLOSE_SETTLE_MS, SNAPSHOT_STALE_MS, dropLens, glassAllowed, glassShape, liveNeed, snapshotLead } from "./glass/params";
 import { contrastMore, dropSnapshot, glassBroken, reducedTransparency, requestSnapshot, snapshot } from "./glass/snapshot";
-import { dropLive, liveForHud, liveFrame, liveSession, liveSupport, restartLive, wantLive } from "./glass/live";
+import { dropLive, liveFrame, liveSession, liveSupport, restartLive, wantLive } from "./glass/live";
 import { ClosedResize, ClosedResizeBar, closedEdit, closedLive } from "./ClosedResize";
 import { drop, takeDropped } from "../platform/drop";
 import { hoverDelayMs, settings } from "../settings/store";
@@ -69,6 +70,7 @@ const DROP_WAIT_MS = 500;
 
 export function Notch() {
   const { status, open, close, dismiss, toggle, onPointerEnter, onPointerLeave } = useNotchState();
+  const focus = focusMode.use();
   const { tools: toolSettings, display: displaySettings, behavior, closedSize: savedSizes, themes, closed: closedSettings } = settings.use();
   // Resize mode (ClosedResize.tsx): the closed shape shows grips instead of its parts and neither opens nor moves; a grip's drag draws at once.
   const editing = closedEdit.use();
@@ -168,7 +170,7 @@ export function Notch() {
   const surface = surfaceOf(idleStyle, displaySettings.idleStyle, alert);
   // The row is on screen closed or peeking, not as a line, not while Rust hides the window for a window rule.
   const hiddenForFullscreen = screenBehavior === "hide";
-  const showRow = status !== "open" && !idleLine && !hiddenForFullscreen && !editing;
+  const showRow = status !== "open" && !idleLine && !focus && !hiddenForFullscreen && !editing;
   // Content width of the closed row, as it last reported it (kept while open, so closing goes straight to it).
   const [rowWidth, setRowWidth] = useState(0);
   // Notices cover the row; on the idle line only urgent ones show (timer, reminder, a status alert). While one shows the shape takes its width.
@@ -199,27 +201,11 @@ export function Notch() {
     presenting, cover: backdrop && !darkTheme, dragging: drag.dragging, editing,
   };
   const allowed = glassAllowed({ on: themes.glass, windows: !isMac, fits: glassFits, webgl: !broken, ...blocks });
-  // A status alert fills the closed shape (NoticeLayer.tsx, `exact`). With Glass and its "Status alerts" switch on it is clear glass over the live copy,
-  // which runs for it also with "Also the closed notch and capsule" off, and HUD_LIVE_LINGER_MS longer, so a run of keys keeps one session. With that
-  // switch off it takes the closed notch's colour, also where the closed notch is glass.
-  const [noticeSize, setNoticeSize] = useState<{ width: number; height: number; exact: boolean } | null>(null);
-  const hud = !side && status !== "open" && noticeSize?.exact === true;
-  const [hudLive, setHudLive] = useState(false);
-  useEffect(() => {
-    if (hud) {
-      setHudLive(true);
-      return;
-    }
-    const id = window.setTimeout(() => setHudLive(false), HUD_LIVE_LINGER_MS);
-    return () => window.clearTimeout(id);
-  }, [hud]);
-  const hudGlass = themes.glass && themes.glassAlerts;
-  useEffect(() => liveForHud(hudGlass && !themes.glassLive && (hud || hudLive)), [hudGlass, themes.glassLive, hud, hudLive]);
-  // The live glass (glass/live.ts): the closed notch on the top edge and the capsule, never the line (but the notch a status alert opens
-  // it into); not while the session is locked, away on a remote client or asleep either.
+  // The live glass (glass/live.ts): the closed notch on the top edge and the capsule, never the line; not while the session is locked,
+  // away on a remote client or asleep either.
   const support = liveSupport.use(), session = liveSession.use();
   const liveAllowed =
-    glassAllowed({ on: themes.glass && (themes.glassLive || (hudGlass && (hud || hudLive))) && support?.supported === true, windows: !isMac, fits: edge === "top" && (!idleLine || hud), webgl: !broken, ...blocks }) &&
+    glassAllowed({ on: themes.glass && themes.glassLive && support?.supported === true, windows: !isMac, fits: edge === "top" && !idleLine, webgl: !broken, ...blocks }) &&
     !session.locked && !session.remote && !session.asleep;
   // The open panel draws over the copy taken as it opens (snapshot.ts) and keeps it as it closes, under the closed colour coming back;
   // the closed shapes and the peek draw over the live copy (live.ts). Whether a panel is closing is state set during render, React's way
@@ -240,19 +226,17 @@ export function Notch() {
   }, [shrinking]);
   const closedLook = status !== "open" && !shrinking;
   const liveReady = liveFrame.use();
-  // With the closed notch's own glass off, only a status alert shows glass; the session that lingers after it draws nothing. A status alert follows
-  // its own switch, the rest of the closed look the closed notch's.
-  const glass: GlassMode = !armed ? "off" : closedLook ? (liveAllowed && liveReady && (hud ? themes.glassAlerts : themes.glassLive) ? "shown" : "armed") : allowed && shot.ready ? "shown" : "armed";
+  const glass: GlassMode = !armed ? "off" : closedLook ? (liveAllowed && liveReady ? "shown" : "armed") : allowed && shot.ready ? "shown" : "armed";
   const reduced = useReducedMotion();
   // The closed row over the closed glass (themes.ts closedGlassInk); its colours change with --shape's fade while the switch is on,
   // where the live glass can run: elsewhere (a Mac with a Windows backup restored) the row keeps global.css's fade of the accent.
   const closedGlass = useClosedGlassInk(closedInk?.["--accent"] ?? accent, glass === "shown" && closedLook);
   const inkFade = themes.glass && themes.glassLive && support?.supported === true && !reduced;
-  // Under a window rule that hides the window, a status alert still draws: an indicator shown everywhere brings the window out for it.
-  const noticeTime = status !== "open" && (showRow || alert || (hiddenForFullscreen && statusOn));
+  const noticeTime = status !== "open" && (showRow || alert);
   const showNotices = !side && noticeTime && !editing;
   // On the idle line, only an urgent notice brings the column up: its icon alone, so the shape always has something to click.
   const showColumn = side && noticeTime && !editing;
+  const [noticeSize, setNoticeSize] = useState<{ width: number; height: number } | null>(null);
   const notice = showNotices ? noticeSize : null;
   // The chosen size (collapsed.ts): the content is drawn at the height over its designed 30, the width is a minimum the content widens,
   // and the monitor along the edge only narrows what is drawn. On a side edge the height is the column's depth, the width its length.
@@ -263,14 +247,9 @@ export function Notch() {
   // A card brings its own padding (NoticeCard.tsx), so the shape keeps a narrow margin; the privacy dots, when on, keep the row's beside it.
   const dotsOn = usePrivacyDots().length > 0;
   const cardInset = notice && notice.height >= CARD_H && !(showRow && dotsOn) ? CARD_INSET[surface] : undefined;
-  // A status alert (NoticeLayer.tsx, `exact`) keeps its own size whatever the notch's: no minimum from the chosen width, the designed scale
-  // and the row's 30 px, so the shape is just large enough for its icon, bar and text.
-  const exact = notice?.exact === true;
-  const closedW = exact
-    ? surfaceWidth(surface, notice.width, 0, 1, span)
-    : surfaceWidth(surface, notice?.width ?? (showRow || status === "open" ? rowWidth : 0), surface === "capsule" ? sizes.capsuleWidth : sizes.notchWidth, scale, span, cardInset);
+  const closedW = surfaceWidth(surface, notice?.width ?? (showRow || status === "open" ? rowWidth : 0), surface === "capsule" ? sizes.capsuleWidth : sizes.notchWidth, scale, span, cardInset);
   // A notice card (NoticeCard.tsx) is taller than the row: the closed shape grows to it, drawn at the same content scale.
-  const shapeH = notice ? (exact ? notice.height : Math.max(closedH, notice.height * scale)) : closedH;
+  const shapeH = notice ? Math.max(closedH, notice.height * scale) : closedH;
   const [column, setColumn] = useState({ length: 0, width: 0, notice: false });
   const columnShows = showColumn || status === "open";
   const sideSize = side ? columnSurface(columnShows ? column.length : 0, columnShows ? column.width : 0, scale, sideLength(sizes.notchWidth), span) : null;
@@ -295,7 +274,7 @@ export function Notch() {
   const tightHit = lineShape && !editing;
   // On a side edge the open panel reaches across the screen as far as the page is wide.
   const sticky = useStickyHitZone(status, side ? size.w : size.h, edge);
-  const transition = useTransitionFor(status, shape, exact);
+  const transition = useTransitionFor(status, shape);
   const topValue = useSpringTop(top, transition, drag.dragging);
   // The pet's nest stands beside the closed shape, its top a little below the shape's (topValue: as padding or margin, the shape's top).
   const pet = closedSettings.pet;
@@ -335,8 +314,16 @@ export function Notch() {
     if (editing) close();
   }, [editing, close]);
 
+  // Focus mode on -> notch closes, no more hover.
+  useEffect(() => {
+    if (focus) close();
+  }, [focus, close]);
+
+  // Three quick clicks toggle focus mode (natively Rust counts while click-through).
   const onClick = (e: React.MouseEvent) => {
-    if (drag.moved() || editing || status === "open") return;
+    if (drag.moved() || editing) return;
+    if (e.detail >= FOCUS_CLICKS && !isInteractive(e.target)) return setFocusMode(!focus);
+    if (focus || status === "open") return;
     // A click on a part of the closed row opens its tool (a click elsewhere, as usual).
     const part = partTarget(e);
     if (part) openOn(part);
@@ -513,10 +500,11 @@ export function Notch() {
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center"
+      className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center transition-opacity duration-200"
       // In the browser the notch moves inside the window; natively the whole window moves (display.rs).
       style={{
         ["--accent" as string]: accent,
+        opacity: focus ? 0.35 : 1,
         transform: frame ? [frame, slide].filter(Boolean).join(" ") : slide,
         ...(frame && { right: "auto", width: isNative ? windowLength(drag.dock) : side ? viewH : viewW, transformOrigin: "0 0" }),
         // In the browser the layer stands in for the window Rust zooms natively.
@@ -538,12 +526,12 @@ export function Notch() {
           sticky.onPointerMove(e);
           if (status !== "open") pointed.current = { tool: partTarget(e), at: Date.now() };
         }}
-        onPointerDown={editing ? undefined : drag.onPointerDown}
+        onPointerDown={focus || editing ? undefined : drag.onPointerDown}
         // In Tauri, hover comes from the Rust poll (useNativeBridge), not the DOM.
-        onPointerEnter={isNative || hoverOff ? undefined : onPointerEnter}
+        onPointerEnter={isNative || hoverOff || focus ? undefined : onPointerEnter}
         onPointerLeave={() => {
           pointed.current = { tool: null, at: 0 };
-          if (!isNative) onPointerLeave();
+          if (!isNative && !focus) onPointerLeave();
         }}
         onClick={onClick}
         onContextMenu={onContextMenu}
@@ -559,7 +547,6 @@ export function Notch() {
           look={closedLook ? "closed" : "panel"}
           top={topValue}
           hangs={bridged}
-          hud={hud && themes.glassAlerts}
         >
           {/* The closed parts keep the dark tokens on the black notch whatever the theme (src/features/themes), and their order on screen in any language. */}
           <div data-theme-ink dir="ltr" className="contents" style={{ ...closedInk, ...closedGlass, ...(inkFade && { transition: CLOSED_INK_FADE }) }}>
@@ -571,9 +558,9 @@ export function Notch() {
                   : showRow && <CompactRow key="row" room={rowRoom(surface, scale, span)} scale={scale} covered={notice !== null} onWidth={setRowWidth} />}
               </AnimatePresence>
               {/* The notch's insets are the larger ones, so a notice fits either surface. */}
-              <AnimatePresence>{showNotices && <NoticeLayer key="notices" max={rowRoom("notch", scale, span)} scale={scale} onSize={setNoticeSize} urgentOnly={!showRow} mono={hud && hudGlass && liveAllowed} />}</AnimatePresence>
+              <AnimatePresence>{showNotices && <NoticeLayer key="notices" max={rowRoom("notch", scale, span)} scale={scale} onSize={setNoticeSize} urgentOnly={!showRow} />}</AnimatePresence>
               {/* Closed, the dots are the row's last part; under a notice the row is faded out, so they stand on their own (beside the notice, in the shape's inset). */}
-              {showRow && notice && <PrivacyDots centered={side} beside={(notice.width / 2 + (surface === "capsule" ? ROW.insetCapsule : ROW.insetNotch) / 2) / (exact ? scale : 1)} />}
+              {showRow && notice && <PrivacyDots centered={side} beside={notice.width / 2 + (surface === "capsule" ? ROW.insetCapsule : ROW.insetNotch) / 2} />}
             </div>
             {lineIdle && status !== "open" && !hiddenForFullscreen && <LineProgress along={side ? "y" : "x"} />}
           </div>
@@ -702,6 +689,9 @@ function Header({ title }: { title: string }) {
       <div className="flex items-center gap-1">
         {/* Tools render here via <HeaderActions> (src/notch/header.tsx). The grid stacks old and new during a switch. */}
         <div ref={(el) => headerSlot.set(el)} className="grid" />
+        <HeaderButton label={t("Fokus-Modus (3x klicken zum Beenden)")} onClick={() => setFocusMode(true)}>
+          <Selection size={14} weight="bold" />
+        </HeaderButton>
         <HeaderButton label={isPinned ? t("Lösen") : t("Offen halten")} active={isPinned} onClick={togglePin}>
           <PushPin size={14} weight={isPinned ? "fill" : "bold"} />
         </HeaderButton>
@@ -917,18 +907,16 @@ function useSpringTop(top: number, transition: Transition, dragging: boolean): M
   return value;
 }
 
-/** Picks the spring for the transition (open ≠ close ≠ morph); a status alert's HUD (`hud`) comes in as the notch opens and goes as it closes. */
-function useTransitionFor(status: NotchStatus, shape: NotchGeometry, hud: boolean): Transition {
+/** Picks the spring for the transition (open ≠ close ≠ morph). */
+function useTransitionFor(status: NotchStatus, shape: NotchGeometry): Transition {
   const prev = useRef(status);
-  const prevHud = useRef(hud);
   const key = `${shape.w}x${shape.h}x${shape.r}x${shape.ear}x${shape.rt}`;
   const prevKey = useRef(key);
 
   let t: Transition;
   if (status === "open") t = prev.current === "open" ? springs.morph : springs.open;
   else if (status === "peek") t = springs.peek;
-  else if (prev.current === "open") t = springs.close;
-  else t = hud === prevHud.current ? springs.morph : hud ? springs.open : springs.close;
+  else t = prev.current === "open" ? springs.close : springs.morph;
 
   // Only switch when the shape actually changes, otherwise the running spring continues.
   const stable = useRef(t);
@@ -936,7 +924,6 @@ function useTransitionFor(status: NotchStatus, shape: NotchGeometry, hud: boolea
 
   useEffect(() => {
     prev.current = status;
-    prevHud.current = hud;
     prevKey.current = key;
   });
 
@@ -1035,6 +1022,10 @@ function useNativeBridge(
       if (typing) holdOpen(false);
     };
   }, [hitRef, top, onEnter, onLeave, edge]);
+}
+
+function isInteractive(el: EventTarget | null): boolean {
+  return el instanceof Element && !!el.closest("button, input, textarea, a, [role=slider]");
 }
 
 function isTextField(el: EventTarget | null): boolean {

@@ -38,11 +38,13 @@ import { startShowcase } from "./dev/showcase";
 import { startDemo } from "./dev/demo";
 import { language, startLanguage, t } from "./i18n";
 import { setTrayTexts } from "./platform/native";
+import { focusMode, startFocusMode } from "./notch/focus";
 
 if (showcase) startShowcase();
 if (demo) startDemo();
 
 startDropListener();
+startFocusMode();
 startMonitorWatch();
 startSystemPolling();
 startUsagePolling();
@@ -91,6 +93,7 @@ monitor.subscribe(syncDisplay);
 monitors.subscribe(syncDisplay);
 closedLive.subscribe(syncDisplay);
 screen.subscribe(syncDisplay);
+focusMode.subscribe(syncDisplay);
 
 // Clipboard history only records what an enabled tool uses (Ask: the latest text).
 let lastClipMode = "";
@@ -106,7 +109,7 @@ settings.subscribe(syncClipboardMode);
 
 // The tray menu is Rust's; its texts follow the language from here.
 language.subscribe(() =>
-  setTrayTexts({ open: t("Crest öffnen"), settings: t("Einstellungen …"), autostart: isMac ? t("Bei der Anmeldung öffnen") : t("Mit Windows starten"), quit: t("Crest beenden") }),
+  setTrayTexts({ open: t("Crest öffnen"), settings: t("Einstellungen …"), focus: t("Fokus-Modus"), autostart: isMac ? t("Bei der Anmeldung öffnen") : t("Mit Windows starten"), quit: t("Crest beenden") }),
 );
 const languageReady = startLanguage(settings);
 

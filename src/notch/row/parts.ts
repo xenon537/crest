@@ -16,25 +16,15 @@ export const NEST_GAP = 20;
 /** A click makes the pet this much bigger, until the pointer leaves it. */
 export const NEST_ZOOM = 1.5;
 export interface ClosedSettings { order: PartId[]; parts: Record<PartId, boolean>; readings: Record<ReadingKey, boolean>; clockSeconds: boolean; clockDate: boolean; lineProgress: boolean; quotaAlerts: boolean; downloadAlerts: boolean; statusAlerts: StatusAlerts; pet: PetSettings }
-/**
- * `hideOsd` is not an alert: it hides the Windows volume and brightness indicator while Crest shows its own (status.ts osdHidden).
- * `everywhere` neither: the indicators (volume, brightness, the lock keys, the microphone, a copy) show over fullscreen apps and while Crest is hidden too.
- * `saver` covers Energy saver and the power mode, `power` the charger, the low battery and a battery charged on the charger.
- */
-export interface StatusAlerts {
-  power: boolean; saver: boolean; net: boolean; airplane: boolean; bt: boolean; output: boolean; display: boolean; volume: boolean; brightness: boolean;
-  lock: boolean; insert: boolean; mic: boolean; focus: boolean; clip: boolean; hideOsd: boolean; everywhere: boolean;
-}
+/** `hideOsd` is not an alert: it hides the Windows volume and brightness indicator while Crest shows its own (status.ts osdHidden). */
+export interface StatusAlerts { power: boolean; net: boolean; bt: boolean; volume: boolean; brightness: boolean; lock: boolean; insert: boolean; hideOsd: boolean; mic: boolean }
 
 export const CLOSED_DEFAULTS: ClosedSettings = {
   order: [...PART_IDS],
   parts: { timer: true, discord: true, rings: true, title: false, readings: false, equalizer: true, clock: false, github: false, leetcode: false, calendar: false, script: false, downloads: true, weather: false },
-  readings: { cpu: true, ram: true, gpu: true, net: false, power: false, battery: false, temp: false },
+  readings: { cpu: true, ram: true, gpu: true, net: true, power: false, battery: false, temp: false },
   clockSeconds: false, clockDate: false, lineProgress: true, quotaAlerts: true, downloadAlerts: true,
-  statusAlerts: {
-    power: true, saver: true, net: true, airplane: true, bt: true, output: true, display: true, volume: true, brightness: true,
-    lock: true, insert: false, mic: true, focus: true, clip: false, hideOsd: false, everywhere: false,
-  },
+  statusAlerts: { power: true, net: true, bt: true, volume: true, brightness: true, lock: true, insert: false, hideOsd: false, mic: true },
   pet: { id: null, size: PET_SIZE.default, side: "right" },
 };
 
