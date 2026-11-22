@@ -43,6 +43,31 @@
 
 https://github.com/user-attachments/assets/f3a34516-0d47-4f0c-a10f-25e95cc2cf64
 
+---
+
+## Custom Fork Features (xenon537/crest)
+
+> [!NOTE]
+> **Personal Project / AI-Assisted:**
+> This repository is a personal project maintained by [@xenon537](https://github.com/xenon537) for personal use. All features, restorations, and adjustments in this fork were created with the assistance of an AI coding agent (Google Antigravity). I am not a developer or programmer, so this fork is maintained purely as a hobby/personal setup and shared as-is.
+
+This repository is a customized fork of **Crest v1.3.0** with custom enhancements and quick controls:
+
+### 1. Focus Mode (3-Click / 3-Tap Passthrough)
+- **Enter Focus Mode:** Triple-click the notch capsule or header to enter Focus Mode.
+- **Behavior:** The notch dims / shrinks, suppresses hover expansion, and enables low-level click-through passthrough so mouse clicks pass straight through to background applications.
+- **Exit Focus Mode:** Triple-tap / triple-click on the notch area at the top of your screen, or untick **Focus Mode** in the system tray.
+- Enabled by default in this fork (`focusClicks: true`).
+
+### 2. Network Speed in Closed Capsule
+- Live network download and upload readings are enabled by default in the closed capsule, keeping real-time bandwidth statistics visible at a glance.
+
+### 3. Now Playing: Closed-Window Lyrics Quick Toggle
+- Direct one-click toggle button on the **Now Playing / Songs** player toolbar and header bar.
+- Turn closed-window lyrics on or off instantly without having to navigate into **Settings → Music**.
+
+---
+
 ## What it is
 
 A notch at the edge of your Windows or Mac screen that opens on hover, click or **Ctrl + Alt + Space** and holds the tools you reach for all day: about thirty of them, each one on or off as you like. On Windows, Crest can also take the place of the taskbar, with the same tools as widgets beside your apps. Free and open source, no account, nothing to pay.

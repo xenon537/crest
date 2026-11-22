@@ -139,7 +139,7 @@
       "../LICENSE": "LICENSE",
       "../licenses/": "licenses/"
     },
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "macOS": {
       "signingIdentity": "-",
       "hardenedRuntime": false
@@ -155,7 +155,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE3QUQzMUQ4OTQ5Mzc0OUYKUldTZmRKT1UyREd0RnpOUWNRazhwU29UbThjYi9aa2lNaVZQUWF1aHZkYUhGNXRVQ1V1YVhMcDcK",
       "endpoints": [
-        "https://github.com/andrealo20/crest/releases/latest/download/latest.json"
+        "https://github.com/xenon537/crest/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"

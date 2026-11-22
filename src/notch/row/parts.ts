@@ -29,7 +29,7 @@ export interface StatusAlerts {
 export const CLOSED_DEFAULTS: ClosedSettings = {
   order: [...PART_IDS],
   parts: { timer: true, discord: true, rings: true, title: false, readings: false, equalizer: true, clock: false, github: false, leetcode: false, calendar: false, script: false, downloads: true, weather: false },
-  readings: { cpu: true, ram: true, gpu: true, net: false, power: false, battery: false, temp: false },
+  readings: { cpu: true, ram: true, gpu: true, net: true, power: false, battery: false, temp: false },
   clockSeconds: false, clockDate: false, lineProgress: true, quotaAlerts: true, downloadAlerts: true,
   statusAlerts: {
     power: true, saver: true, net: true, airplane: true, bt: true, output: true, display: true, volume: true, brightness: true,
