@@ -215,7 +215,7 @@ export const MATERIAL_NAMES: Record<string, string> = {
  * Phosphor's in both styles: no Material Symbol is a git branch, a safe or a code file, GitHub's mark is a brand, and IconBase is
  * not an icon but the base Crest's own icons are drawn on (icons.tsx).
  */
-export const KEEP_PHOSPHOR = ["FileCode", "GitBranch", "GithubLogo", "IconBase", "Vault"];
+export const KEEP_PHOSPHOR = ["FileCode", "GitBranch", "GithubLogo", "IconBase", "Vault", "ChatCenteredText"];
 
 /**
  * The icons Crest draws at Phosphor's regular weight, given or by default, which Material draws at weight 300: a 1 px stroke at

@@ -12,7 +12,7 @@ import {
   BoundingBox as PhBoundingBox, Broom as PhBroom, Bug as PhBug, Calculator as PhCalculator, CalendarBlank as PhCalendarBlank,
   CalendarCheck as PhCalendarCheck, Camera as PhCamera, CaretDown as PhCaretDown, CaretLeft as PhCaretLeft,
   CaretRight as PhCaretRight, CaretUp as PhCaretUp, CaretUpDown as PhCaretUpDown, ChartDonut as PhChartDonut,
-  ChartLineUp as PhChartLineUp, ChatCircle as PhChatCircle, Check as PhCheck, CheckCircle as PhCheckCircle,
+  ChartLineUp as PhChartLineUp, ChatCenteredText as PhChatCenteredText, ChatCircle as PhChatCircle, Check as PhCheck, CheckCircle as PhCheckCircle,
   CheckSquare as PhCheckSquare, Checks as PhChecks, CircleNotch as PhCircleNotch, ClipboardText as PhClipboardText,
   Clock as PhClock, ClockClockwise as PhClockClockwise, Cloud as PhCloud, CloudFog as PhCloudFog,
   CloudLightning as PhCloudLightning, CloudMoon as PhCloudMoon, CloudRain as PhCloudRain, CloudSnow as PhCloudSnow,
@@ -133,6 +133,7 @@ export const CaretUp = material(PhCaretUp, "CaretUp");
 export const CaretUpDown = material(PhCaretUpDown, "CaretUpDown");
 export const ChartDonut = material(PhChartDonut, "ChartDonut");
 export const ChartLineUp = material(PhChartLineUp, "ChartLineUp");
+export const ChatCenteredText = PhChatCenteredText;
 export const ChatCircle = material(PhChatCircle, "ChatCircle");
 export const Check = material(PhCheck, "Check");
 export const CheckCircle = material(PhCheckCircle, "CheckCircle");

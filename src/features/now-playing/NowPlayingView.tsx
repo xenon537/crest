@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { ChatCenteredText } from "@phosphor-icons/react";
-import { ArrowUpRight, ImageSquare, MicrophoneStage, MusicNoteSimple, MusicNotesSimple, Pause, Play, Repeat, RepeatOnce, Shuffle, SkipBack, SkipForward } from "../../ui/iconset";
+import { ArrowUpRight, ChatCenteredText, ImageSquare, MicrophoneStage, MusicNoteSimple, MusicNotesSimple, Pause, Play, Repeat, RepeatOnce, Shuffle, SkipBack, SkipForward } from "../../ui/iconset";
 import { artwork as artworkSwap, content, springs } from "../../design/motion";
 import { useSmoothArtwork, useTinyArtwork } from "./artwork";
 import { coverBackdrop } from "./CoverBackdrop";
